@@ -197,9 +197,12 @@ if st.button("🔮 予測実行", type="primary", use_container_width=True):
     cat_idx    = None
     cat_name   = None
     if vault_data is not None:
-        vault_pred, cat_idx, cat_name, vmin, vmax = predict_vault(
-            lv, acd_ratio, cct, acw, pred_size, vault_data
-        )
+        try:
+            vault_pred, cat_idx, cat_name, vmin, vmax = predict_vault(
+                lv, acd_ratio, cct, acw, pred_size, vault_data
+            )
+        except Exception:
+            st.warning("⚠️ Vault予測モデルの実行中にエラーが発生しました（モデルとPythonバージョンの非互換）。サイズ予測のみ表示します。")
 
     # ============================================================
     # サイズ予測結果
