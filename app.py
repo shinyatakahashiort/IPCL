@@ -159,7 +159,7 @@ col1, col2 = st.columns(2)
 with col1:
     lv = st.number_input(
         "LV [mm]",
-        min_value=0.0, max_value=2.0, value=0.30, step=0.01, format="%.3f",
+        min_value=-2.0, max_value=2.0, value=0.30, step=0.01, format="%.3f",
         help="LV_SliceNo: 0 (Angle: 180-0)"
     )
     cct = st.number_input(
