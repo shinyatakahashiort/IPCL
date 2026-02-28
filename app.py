@@ -119,7 +119,12 @@ def predict_vault(lv, acd_ratio, cct, acw, pred_size, data):
     # アンサンブル予測（平均）
     preds = []
     for mname, mdl in reg_models.items():
-        preds.append(float(mdl.predict(X)[0]))
+        try:
+            preds.append(float(mdl.predict(X)[0]))
+        except Exception:
+            pass
+    if not preds:
+        raise RuntimeError("全モデルの予測に失敗しました")
     vault_pred = float(np.mean(preds))
 
     # カテゴリ判定
