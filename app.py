@@ -205,93 +205,31 @@ if st.button("🔮 予測実行", type="primary", use_container_width=True):
             st.warning("⚠️ Vault予測モデルの実行中にエラーが発生しました（モデルとPythonバージョンの非互換）。サイズ予測のみ表示します。")
 
     # ============================================================
-    # サイズ予測結果
+    # Step 1: サイズ予測結果
     # ============================================================
-    st.subheader("📊 ICLサイズ予測結果")
+    st.subheader("Step 1: ICLサイズ予測")
 
-    col_a, col_b = st.columns(2)
-    with col_a:
-        st.metric(
-            label="🎯 推奨サイズ（argmax）",
-            value=f"{pred_size:.2f} mm",
-            help="最も確率が高いサイズ"
-        )
-    with col_b:
-        st.metric(
-            label="⚖️ 加重平均サイズ（wavg）",
-            value=f"{pred_wavg:.2f} mm",
-            delta=f"連続値: {weighted_raw:.3f} mm",
-            help="確率分布の加重平均から算出"
-        )
+    st.metric(
+        label="🎯 推奨サイズ",
+        value=f"{pred_size:.2f} mm",
+        help="最も確率が高いサイズ（argmax）"
+    )
 
     if pred_size == pred_wavg:
-        st.success(f"✅ argmax・加重平均ともに **{pred_size:.2f} mm** で一致。信頼性が高い予測です。")
+        st.success(f"✅ 推奨サイズ・加重平均ともに **{pred_size:.2f} mm** で一致。信頼性が高い予測です。")
     else:
+        col_a, col_b = st.columns(2)
+        with col_a:
+            st.metric(label="推奨サイズ（argmax）", value=f"{pred_size:.2f} mm")
+        with col_b:
+            st.metric(label="加重平均（wavg）", value=f"{pred_wavg:.2f} mm",
+                      delta=f"連続値: {weighted_raw:.3f} mm")
         st.warning(
             f"⚠️ argmax（{pred_size:.2f} mm）と加重平均（{pred_wavg:.2f} mm）が異なります。"
             f"確率が拮抗しています。臨床判断を優先してください。"
         )
 
-    # ============================================================
-    # Vault予測結果
-    # ============================================================
-    if vault_pred is not None:
-        st.markdown("---")
-        st.subheader("🔬 Vault予測結果")
-
-        col_v1, col_v2 = st.columns(2)
-        with col_v1:
-            st.metric(
-                label="📏 予測Vault値",
-                value=f"{vault_pred*1000:.0f} µm",
-                delta=f"{vault_pred:.3f} mm",
-                help="予測されるVault値"
-            )
-        with col_v2:
-            st.metric(
-                label="📋 Vault判定",
-                value=cat_name,
-                help=f"Low: <{vmin*1000:.0f}µm / Normal: {vmin*1000:.0f}-{vmax*1000:.0f}µm / High: >{vmax*1000:.0f}µm"
-            )
-
-        # カテゴリ別カラー表示
-        if cat_idx == 0:
-            st.error(f"⚠️ **Vault低すぎ** ({vault_pred*1000:.0f} µm) — より大きいサイズの検討を推奨します。")
-        elif cat_idx == 1:
-            st.success(f"✅ **Vault適正** ({vault_pred*1000:.0f} µm) — {pred_size:.2f} mmは適切なサイズと予測されます。")
-        else:
-            st.error(f"⚠️ **Vault高すぎ** ({vault_pred*1000:.0f} µm) — より小さいサイズの検討を推奨します。")
-
-        # Vaultゲージ
-        fig_v, ax_v = plt.subplots(figsize=(8, 1.5))
-        ax_v.barh(0, vmin, color='#EF5350', height=0.4, left=0)
-        ax_v.barh(0, vmax - vmin, color='#66BB6A', height=0.4, left=vmin)
-        ax_v.barh(0, 1.0 - vmax, color='#EF5350', height=0.4, left=vmax)
-        ax_v.axvline(vault_pred, color='#1565C0', linewidth=3, label=f'予測値: {vault_pred*1000:.0f} µm')
-        ax_v.set_xlim(0, 1.0)
-        ax_v.set_xlabel('Vault (mm)', fontweight='bold')
-        ax_v.set_yticks([])
-        ax_v.legend(loc='upper right', fontsize=9)
-        ax_v.set_title('Vault 予測値ゲージ', fontweight='bold')
-        ax_v.text(vmin/2, -0.35, 'Low', ha='center', fontsize=8, color='#B71C1C')
-        ax_v.text((vmin+vmax)/2, -0.35, 'Normal', ha='center', fontsize=8, color='#1B5E20')
-        ax_v.text((vmax+1.0)/2, -0.35, 'High', ha='center', fontsize=8, color='#B71C1C')
-        fig_v.tight_layout()
-        st.pyplot(fig_v)
-        plt.close()
-
-    # ============================================================
-    # 臨床参考情報
-    # ============================================================
-    st.markdown("---")
-    st.info(
-        "💡 **選択原則**: Vaultが高すぎるリスクを避けるため、迷ったら小さめを選ぶことを推奨します。\n\n"
-        "このアプリはあくまで参考情報です。最終的なサイズ選択は医師の判断に基づいてください。"
-    )
-
-    # ============================================================
     # 確率分布グラフ
-    # ============================================================
     st.markdown("---")
     st.subheader("📈 サイズ確率分布")
 
@@ -322,7 +260,7 @@ if st.button("🔮 予測実行", type="primary", use_container_width=True):
                 ha='center', va='bottom', fontsize=8, fontweight='bold'
             )
 
-    patch_am = mpatches.Patch(color='#1976D2', label=f'argmax: {pred_size:.2f} mm')
+    patch_am = mpatches.Patch(color='#1976D2', label=f'推奨サイズ: {pred_size:.2f} mm')
     patch_wv = mpatches.Patch(color='#F57C00', label=f'wavg: {pred_wavg:.2f} mm')
     ax.legend(handles=[patch_am, patch_wv], fontsize=9, loc='upper right')
     ax.set_xlabel('ICL Size (mm)', fontweight='bold')
@@ -335,7 +273,6 @@ if st.button("🔮 予測実行", type="primary", use_container_width=True):
     st.pyplot(fig)
     plt.close()
 
-    # 確率テーブル
     with st.expander("📋 確率テーブル（全サイズ）"):
         import pandas as pd
         prob_df = pd.DataFrame({
@@ -344,6 +281,61 @@ if st.button("🔮 予測実行", type="primary", use_container_width=True):
         })
         prob_df = prob_df[prob_df['Probability (%)'] != '0.0'].reset_index(drop=True)
         st.dataframe(prob_df, use_container_width=True, hide_index=True)
+
+    # ============================================================
+    # Step 2: 推奨サイズの予測Vault
+    # ============================================================
+    if vault_pred is not None:
+        st.markdown("---")
+        st.subheader(f"Step 2: 推奨サイズ {pred_size:.2f} mm の予測Vault")
+
+        col_v1, col_v2 = st.columns(2)
+        with col_v1:
+            st.metric(
+                label="📏 予測Vault値",
+                value=f"{vault_pred*1000:.0f} µm",
+                delta=f"{vault_pred:.3f} mm",
+                help="予測されるVault値"
+            )
+        with col_v2:
+            st.metric(
+                label="📋 Vault判定",
+                value=cat_name,
+                help=f"Low: <{vmin*1000:.0f}µm / Normal: {vmin*1000:.0f}-{vmax*1000:.0f}µm / High: >{vmax*1000:.0f}µm"
+            )
+
+        if cat_idx == 0:
+            st.error(f"⚠️ **Vault低すぎ** ({vault_pred*1000:.0f} µm) — より大きいサイズの検討を推奨します。")
+        elif cat_idx == 1:
+            st.success(f"✅ **Vault適正** ({vault_pred*1000:.0f} µm) — {pred_size:.2f} mmは適切なサイズと予測されます。")
+        else:
+            st.error(f"⚠️ **Vault高すぎ** ({vault_pred*1000:.0f} µm) — より小さいサイズの検討を推奨します。")
+
+        fig_v, ax_v = plt.subplots(figsize=(8, 1.5))
+        ax_v.barh(0, vmin, color='#EF5350', height=0.4, left=0)
+        ax_v.barh(0, vmax - vmin, color='#66BB6A', height=0.4, left=vmin)
+        ax_v.barh(0, 1.0 - vmax, color='#EF5350', height=0.4, left=vmax)
+        ax_v.axvline(vault_pred, color='#1565C0', linewidth=3, label=f'予測値: {vault_pred*1000:.0f} µm')
+        ax_v.set_xlim(0, 1.0)
+        ax_v.set_xlabel('Vault (mm)', fontweight='bold')
+        ax_v.set_yticks([])
+        ax_v.legend(loc='upper right', fontsize=9)
+        ax_v.set_title('Vault 予測値ゲージ', fontweight='bold')
+        ax_v.text(vmin/2, -0.35, 'Low', ha='center', fontsize=8, color='#B71C1C')
+        ax_v.text((vmin+vmax)/2, -0.35, 'Normal', ha='center', fontsize=8, color='#1B5E20')
+        ax_v.text((vmax+1.0)/2, -0.35, 'High', ha='center', fontsize=8, color='#B71C1C')
+        fig_v.tight_layout()
+        st.pyplot(fig_v)
+        plt.close()
+
+    # ============================================================
+    # 臨床参考情報
+    # ============================================================
+    st.markdown("---")
+    st.info(
+        "💡 **選択原則**: Vaultが高すぎるリスクを避けるため、迷ったら小さめを選ぶことを推奨します。\n\n"
+        "このアプリはあくまで参考情報です。最終的なサイズ選択は医師の判断に基づいてください。"
+    )
 
 # ============================================================
 # フッター
