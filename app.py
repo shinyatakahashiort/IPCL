@@ -158,24 +158,24 @@ col1, col2 = st.columns(2)
 
 with col1:
     lv = st.number_input(
-        "LV (Lens Vault) [mm]",
+        "LV [mm]",
         min_value=0.0, max_value=2.0, value=0.30, step=0.01, format="%.3f",
         help="LV_SliceNo: 0 (Angle: 180-0)"
     )
     cct = st.number_input(
-        "CCT (Central Corneal Thickness) [μm]",
+        "CCT [μm]",
         min_value=400.0, max_value=700.0, value=540.0, step=1.0, format="%.1f",
         help="CCT_SliceNo: 0 (Angle: 180-0)"
     )
 
 with col2:
     acd_ratio = st.number_input(
-        "ACD[Endo.] / (CCT/ACD) ratio",
+        "ACD",
         min_value=0.0, max_value=10.0, value=3.20, step=0.01, format="%.3f",
         help="ACD[Endo.]_CCT/ACD"
     )
     acw = st.number_input(
-        "ACW (Anterior Chamber Width) [mm]",
+        "ACW [mm]",
         min_value=10.0, max_value=14.0, value=11.80, step=0.01, format="%.3f",
         help="ACW_SliceNo: 0 (Angle: 180-0)"
     )
